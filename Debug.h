@@ -17,9 +17,14 @@ void Debug_Init(void);
 // Output: none
 void Debug_TooglePin(void);
 
-// **************Debug_ToogleBoardLed*********************
-// Executes a toogle on the board led
+// **************Debug_TooglePin2*********************
+// Executes a toogle on the debug pin
 // Input: none 
 // Output: none
-void Debug_ToogleBoardLed(void);
+void Debug_TooglePin2(void);
 
+// **************Debug_TooglePin3*********************
+// Executes a toogle on the debug pin
+// Input: none 
+// Output: none
+void Debug_TooglePin3(void);
