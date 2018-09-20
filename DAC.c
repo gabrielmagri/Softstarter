@@ -1,4 +1,4 @@
-// DAC.h
+// DAC.c
 // Runs on TM4C123, 
 // Unisinos TGA Eletrônica 4 
 // 6-bit Digital analog converter
