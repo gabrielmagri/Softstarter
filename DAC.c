@@ -1,17 +1,17 @@
 // DAC.h
 // Runs on TM4C123, 
 // Unisinos TGA Eletrônica 4 
-// 4-bit Digital analog converter
-// Gabriel Magri, Jaqueline Isabel Prass, Marcos
+// 6-bit Digital analog converter
+// Gabriel Magri, Jaqueline Isabel Prass, Marcos Spellmeier
 // September 18, 2018
 
-// Port B bits 3-0 have the 4-bit DAC
+// Port B bits 5-0 have the 6-bit DAC
 
 #include "DAC.h"
 #include "tm4c123gh6pm.h"
 
 // **************DAC_Init*********************
-// Initialize 4-bit DAC 
+// Initialize 6-bit DAC 
 // Input: none
 // Output: none
 void DAC_Init(void){
@@ -29,7 +29,7 @@ void DAC_Init(void){
 
 // **************DAC_Out*********************
 // output to DAC
-// Input: 4-bit data, 0 to 15 
+// Input: 6-bit data, 0 to 63
 // Output: none
 void DAC_Out(unsigned long data){
   GPIO_PORTB_DATA_R = ((GPIO_PORTB_DATA_R & ~0x3F)|(data & 0x3F));
