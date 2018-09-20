@@ -14,8 +14,8 @@
 
 #include "tm4c123gh6pm.h"
 #include "PLL.h"
+#include "LEDs.h"
 #include "control.h"
-#include "Debug.h"
 #include "Keyboard.h"
 
 // basic functions defined at end of startup.s
@@ -28,7 +28,7 @@ unsigned int KeyboardInNow = 0;
 int main(void){
 	
 	PLL_Init();
-	Debug_Init();
+	LEDs_Init();
 	Keyboard_Init();
 	Control_Init();
  

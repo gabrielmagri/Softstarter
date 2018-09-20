@@ -35,8 +35,8 @@
 
 #include "control.h"
 #include "DAC.h"
+#include "LEDs.h"
 #include "tm4c123gh6pm.h"
-#include "Debug.h"
 
 //
 const unsigned char output[44] = {63, 42, 41, 40, 39, 38, 37, 36, 35, 34, 33, 32, 31, 30, 29, 28, 27, 26, 
@@ -47,6 +47,7 @@ unsigned int InterruptsCounter = 0;
 unsigned char buttonClicked = NONE_CLICKED;
 unsigned char starting = 0;
 unsigned char stopping = 0;
+unsigned char started = 0;
 
 //
 void Systick_Init(void) {
@@ -86,7 +87,6 @@ void Stop_Clicked(void){
 // Interrupt service routine
 // Executed every 12.5ns*(period)
 void SysTick_Handler(void){
-	Debug_TooglePin();
 	
 	switch(buttonClicked) {
 		case START_CLICKED:
@@ -111,20 +111,28 @@ void SysTick_Handler(void){
 		InterruptsCounter=0; //Reset the counter
 		
 		if(starting==1) {
+			LEDs_Green();
 			if(Index>=43) { //Reached the end of starting
 				starting=0;
 				Index = 43; //Lock the index into 43 to hold the angle as 0
+				started = 1; //Indicate that the motor reached the nominal motor
 			} else {
-				Debug_TooglePin2();
 				Index++;
 			}
 		} else if(stopping==1) {
+			LEDs_Red();
 			if(Index==0) { //Reached the end of stopping
 				stopping=0;
 				Index = 0; //Lock the index into 0 to hold the angle as 180
+				started = 0; //Indicate that the motor is no longer receiving voltage
 			} else {
-				Debug_TooglePin3();
 				Index--;
+			}
+		} else {
+			if(started==1) {
+				LEDs_Blue();
+			} else {
+				LEDs_None();
 			}
 		}
 		

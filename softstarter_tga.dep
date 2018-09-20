@@ -1,24 +1,27 @@
 Dependencies for Project 'softstarter', Target 'tga': (DO NOT MODIFY !)
-F (.\startup.s)(0x5BA30D10)(--cpu Cortex-M4 --pd "__EVAL SETA 1" -g --apcs=interwork -I F:\Keil\ARM\RV31\INC-I F:\Keil\ARM\CMSIS\Include-I F:\Keil\ARM\Inc\Luminary--list .\startup.lst --xref -o .\startup.o --depend .\startup.d)
-F (.\Softstarter.c)(0x5BA3340B)(-c --cpu Cortex-M4 -D__EVAL -g -O0 --apcs=interwork --split_sections -I.. -I..\..\..-I F:\Keil\ARM\RV31\INC-I F:\Keil\ARM\CMSIS\Include-I F:\Keil\ARM\Inc\Luminary-Drvmdk -DPART_LM4F120H5QR-o .\softstarter.o --omf_browse .\softstarter.crf --depend .\softstarter.d)
-I (tm4c123gh6pm.h)(0x5BA30D10)
-I (PLL.h)(0x5BA30D10)
-I (control.h)(0x5BA328B6)
-I (Debug.h)(0x5BA333D6)
-I (Keyboard.h)(0x5BA30D10)
-F (.\DAC.c)(0x5BA31447)(-c --cpu Cortex-M4 -D__EVAL -g -O0 --apcs=interwork --split_sections -I.. -I..\..\..-I F:\Keil\ARM\RV31\INC-I F:\Keil\ARM\CMSIS\Include-I F:\Keil\ARM\Inc\Luminary-Drvmdk -DPART_LM4F120H5QR-o .\dac.o --omf_browse .\dac.crf --depend .\dac.d)
-I (DAC.h)(0x5BA30D10)
-I (tm4c123gh6pm.h)(0x5BA30D10)
-F (.\Keyboard.c)(0x5BA30D10)(-c --cpu Cortex-M4 -D__EVAL -g -O0 --apcs=interwork --split_sections -I.. -I..\..\..-I F:\Keil\ARM\RV31\INC-I F:\Keil\ARM\CMSIS\Include-I F:\Keil\ARM\Inc\Luminary-Drvmdk -DPART_LM4F120H5QR-o .\keyboard.o --omf_browse .\keyboard.crf --depend .\keyboard.d)
-I (Keyboard.h)(0x5BA30D10)
-I (tm4c123gh6pm.h)(0x5BA30D10)
-F (.\PLL.c)(0x5BA30D10)(-c --cpu Cortex-M4 -D__EVAL -g -O0 --apcs=interwork --split_sections -I.. -I..\..\..-I F:\Keil\ARM\RV31\INC-I F:\Keil\ARM\CMSIS\Include-I F:\Keil\ARM\Inc\Luminary-Drvmdk -DPART_LM4F120H5QR-o .\pll.o --omf_browse .\pll.crf --depend .\pll.d)
-I (PLL.h)(0x5BA30D10)
-F (.\control.c)(0x5BA33897)(-c --cpu Cortex-M4 -D__EVAL -g -O0 --apcs=interwork --split_sections -I.. -I..\..\..-I F:\Keil\ARM\RV31\INC-I F:\Keil\ARM\CMSIS\Include-I F:\Keil\ARM\Inc\Luminary-Drvmdk -DPART_LM4F120H5QR-o .\control.o --omf_browse .\control.crf --depend .\control.d)
-I (control.h)(0x5BA328B6)
-I (DAC.h)(0x5BA30D10)
-I (tm4c123gh6pm.h)(0x5BA30D10)
-I (Debug.h)(0x5BA333D6)
-F (.\Debug.c)(0x5BA333DA)(-c --cpu Cortex-M4 -D__EVAL -g -O0 --apcs=interwork --split_sections -I.. -I..\..\..-I F:\Keil\ARM\RV31\INC-I F:\Keil\ARM\CMSIS\Include-I F:\Keil\ARM\Inc\Luminary-Drvmdk -DPART_LM4F120H5QR-o .\debug.o --omf_browse .\debug.crf --depend .\debug.d)
-I (Debug.h)(0x5BA333D6)
-I (tm4c123gh6pm.h)(0x5BA30D10)
+F (.\startup.s)(0x5701C5B8)(--cpu Cortex-M4 --pd "__EVAL SETA 1" -g --apcs=interwork -I F:\Keil\ARM\RV31\INC-I F:\Keil\ARM\CMSIS\Include-I F:\Keil\ARM\Inc\Luminary--list .\startup.lst --xref -o .\startup.o --depend .\startup.d)
+F (.\Softstarter.c)(0x5BA34B9C)(-c --cpu Cortex-M4 -D__EVAL -g -O0 --apcs=interwork --split_sections -I.. -I..\..\..-I F:\Keil\ARM\RV31\INC-I F:\Keil\ARM\CMSIS\Include-I F:\Keil\ARM\Inc\Luminary-Drvmdk -DPART_LM4F120H5QR-o .\softstarter.o --omf_browse .\softstarter.crf --depend .\softstarter.d)
+I (tm4c123gh6pm.h)(0x51D48CD2)
+I (PLL.h)(0x5BA15FE2)
+I (LEDs.h)(0x5BA34B40)
+I (control.h)(0x5BA346F4)
+I (Keyboard.h)(0x5BA19893)
+F (.\DAC.c)(0x5BA346F4)(-c --cpu Cortex-M4 -D__EVAL -g -O0 --apcs=interwork --split_sections -I.. -I..\..\..-I F:\Keil\ARM\RV31\INC-I F:\Keil\ARM\CMSIS\Include-I F:\Keil\ARM\Inc\Luminary-Drvmdk -DPART_LM4F120H5QR-o .\dac.o --omf_browse .\dac.crf --depend .\dac.d)
+I (DAC.h)(0x5BA15C14)
+I (tm4c123gh6pm.h)(0x51D48CD2)
+F (.\Keyboard.c)(0x5BA2FDC0)(-c --cpu Cortex-M4 -D__EVAL -g -O0 --apcs=interwork --split_sections -I.. -I..\..\..-I F:\Keil\ARM\RV31\INC-I F:\Keil\ARM\CMSIS\Include-I F:\Keil\ARM\Inc\Luminary-Drvmdk -DPART_LM4F120H5QR-o .\keyboard.o --omf_browse .\keyboard.crf --depend .\keyboard.d)
+I (Keyboard.h)(0x5BA19893)
+I (tm4c123gh6pm.h)(0x51D48CD2)
+F (.\PLL.c)(0x5BA15FEE)(-c --cpu Cortex-M4 -D__EVAL -g -O0 --apcs=interwork --split_sections -I.. -I..\..\..-I F:\Keil\ARM\RV31\INC-I F:\Keil\ARM\CMSIS\Include-I F:\Keil\ARM\Inc\Luminary-Drvmdk -DPART_LM4F120H5QR-o .\pll.o --omf_browse .\pll.crf --depend .\pll.d)
+I (PLL.h)(0x5BA15FE2)
+F (.\control.c)(0x5BA34D6E)(-c --cpu Cortex-M4 -D__EVAL -g -O0 --apcs=interwork --split_sections -I.. -I..\..\..-I F:\Keil\ARM\RV31\INC-I F:\Keil\ARM\CMSIS\Include-I F:\Keil\ARM\Inc\Luminary-Drvmdk -DPART_LM4F120H5QR-o .\control.o --omf_browse .\control.crf --depend .\control.d)
+I (control.h)(0x5BA346F4)
+I (DAC.h)(0x5BA15C14)
+I (LEDs.h)(0x5BA34B40)
+I (tm4c123gh6pm.h)(0x51D48CD2)
+F (.\Debug.c)(0x5BA346F5)(-c --cpu Cortex-M4 -D__EVAL -g -O0 --apcs=interwork --split_sections -I.. -I..\..\..-I F:\Keil\ARM\RV31\INC-I F:\Keil\ARM\CMSIS\Include-I F:\Keil\ARM\Inc\Luminary-Drvmdk -DPART_LM4F120H5QR-o .\debug.o --omf_browse .\debug.crf --depend .\debug.d)
+I (Debug.h)(0x5BA346F5)
+I (tm4c123gh6pm.h)(0x51D48CD2)
+F (.\LEDs.c)(0x5BA34D09)(-c --cpu Cortex-M4 -D__EVAL -g -O0 --apcs=interwork --split_sections -I.. -I..\..\..-I F:\Keil\ARM\RV31\INC-I F:\Keil\ARM\CMSIS\Include-I F:\Keil\ARM\Inc\Luminary-Drvmdk -DPART_LM4F120H5QR-o .\leds.o --omf_browse .\leds.crf --depend .\leds.d)
+I (LEDs.h)(0x5BA34B40)
+I (tm4c123gh6pm.h)(0x51D48CD2)
