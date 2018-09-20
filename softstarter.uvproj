@@ -440,6 +440,11 @@
               <FileType>1</FileType>
               <FilePath>.\Debug.c</FilePath>
             </File>
+            <File>
+              <FileName>LEDs.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>.\LEDs.c</FilePath>
+            </File>
           </Files>
         </Group>
       </Groups>
