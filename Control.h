@@ -1,34 +1,29 @@
-// Sound.c
+// control.h
 // Runs on  TM4C123, 
 // Unisinos TGA Eletrônica 4 
-// Use the SysTick timer to request interrupts at a particular period.
+// Use the SysTick timer to request interrupts at a particular period for controlling a 6-bit DAC.
 // Gabriel Magri, Jaqueline Isabel Prass, Marcos Spellmeier
 // September 18, 2018
 
-#define C_NOTE 5095
-#define D_NOTE 4539
-#define E_NOTE 4044
-#define G_NOTE 3400
+#define NONE_CLICKED  0
+#define START_CLICKED 1
+#define STOP_CLICKED  2
 
-// **************Sound_Init*********************
+// **************Control_Init*********************
 // Initialize Systick periodic interrupts
-// Also initializes DAC
+// Also calls DAC_Init() to initialize DAC
 // Input: none
 // Output: none
-void Sound_Init(void);
+void Control_Init(void);
 
-// **************Sound_Tone*********************
-// Change SysTick periodic interrupts to start sound output
-// Input: interrupt period
-//           Units of period are 12.5ns
-//           Maximum is 2^24-1
-//           Minimum is determined by length of ISR
+// **************Start_Clicked*********************
+// Sinalize that the start button was clicked
+// Input: none
 // Output: none
-void Sound_Tone(unsigned long period);
+void Start_Clicked(void);
 
-
-// **************Sound_Off*********************
-// stop outputing to DAC
+// **************Stop_Clicked*********************
+// Sinalize that the stop button was clicked
+// Input: none
 // Output: none
-void Sound_Off(void);
-
+void Stop_Clicked(void);
