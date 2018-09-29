@@ -17,6 +17,7 @@
 #include "LEDs.h"
 #include "control.h"
 #include "Keyboard.h"
+#include "Nokia5110.h"
 
 // basic functions defined at end of startup.s
 void DisableInterrupts(void); // Disable interrupts
@@ -31,16 +32,19 @@ int main(void){
 	LEDs_Init();
 	Keyboard_Init();
 	Control_Init();
- 
+	Nokia5110_Init();
+	Nokia5110_Clear();
+  Nokia5110_OutString("************* LCD Test *************Letter: Num:------- ---- ");
+	
   EnableInterrupts();
 	
   for(;;) {
 		switch(Keyboard_In()) {
 			case KEY_START_PRESSED:
-				Start_Clicked();
+				Start_Clicked(5.0);
 				break;
 			case KEY_STOP_PRESSED:
-				Stop_Clicked();
+				Stop_Clicked(5.0);
 				break;
 			default:
 				

@@ -9,6 +9,10 @@
 #define START_CLICKED 1
 #define STOP_CLICKED  2
 
+static const double SYSTEM_TIME = 0.0000000125; // The system time when running at 80MHz
+static const int DEFAULT_RELOAD = 1860;         // Reload value as defined on the comments above (file's top) 
+static const short DATA_SIZE    = 44;           // The amount of data that are defined and can be "outputed" through DAC.
+
 // **************Control_Init*********************
 // Initialize Systick periodic interrupts
 // Also calls DAC_Init() to initialize DAC
@@ -20,10 +24,10 @@ void Control_Init(void);
 // Sinalize that the start button was clicked
 // Input: none
 // Output: none
-void Start_Clicked(void);
+void Start_Clicked(double desiredTime);
 
 // **************Stop_Clicked*********************
 // Sinalize that the stop button was clicked
 // Input: none
 // Output: none
-void Stop_Clicked(void);
+void Stop_Clicked(double desiredTime);

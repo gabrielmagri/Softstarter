@@ -31,33 +31,49 @@
  *  For these reasons we will set the NVIC_ST_RELOAD_R to 1860465 and update the DAC output just once for each 
  *  ten (10) systick interrupts occured.
  * 
+ * 
+ * UPDATES:
+ * 43kHz the time is 1/f = 23.25581395x10^-6sec.
+ * NVIC_ST_RELOAD_R of (23.25581395uS/12.5nS - 1) that is equals to 1860.46 or 1860.
+ * 
  */
 
 #include "control.h"
 #include "DAC.h"
 #include "LEDs.h"
 #include "tm4c123gh6pm.h"
+#include "Debug.h"
 
 //
-const unsigned char output[44] = {63, 42, 41, 40, 39, 38, 37, 36, 35, 34, 33, 32, 31, 30, 29, 28, 27, 26, 
+const unsigned char output[DATA_SIZE] = {63, 42, 41, 40, 39, 38, 37, 36, 35, 34, 33, 32, 31, 30, 29, 28, 27, 26, 
 	25, 24, 23, 22, 21, 20, 19, 18, 17, 16 ,15 ,14, 13, 12, 11, 10, 9, 8, 7, 6, 5, 4, 3, 2, 1, 0};
 
-unsigned int Index=0;     // Index varies from 0 to 43
-unsigned int InterruptsCounter = 0;
-unsigned char buttonClicked = NONE_CLICKED;
-unsigned char starting = 0;
-unsigned char stopping = 0;
-unsigned char started = 0;
+unsigned short _dataIndex=0;                  // Index varies from 0 to 43.
+unsigned int   _interruptsCounter = 0;        // The counter that needs to reach some value to generate the DAC out.
+unsigned int   _interruptsToBeReached = 0;    // The variable that holds the current amount of interrupts to wait before output to DAC
+unsigned char  _buttonClicked = NONE_CLICKED; // The variable that holds the button events.
+unsigned char  _startingFlag = 0;             // A flag to indicate that the motor is on the middle of a start process.
+unsigned char  _stoppingFlag = 0;             // A flag to indicate that the motor is on the middle of a stop process.
+unsigned char  _startedFlag = 0;              // A flag to indicate that the motor has finished the start process.
 
 //
 void Systick_Init(void) {
 	NVIC_ST_CTRL_R = 0;                           // disable SysTick during setup
-  NVIC_ST_RELOAD_R = 1860465;                   // reload value
+  NVIC_ST_RELOAD_R = DEFAULT_RELOAD;            // reload value
   NVIC_ST_CURRENT_R = 0;                        // any write to current clears it
   NVIC_SYS_PRI3_R = NVIC_SYS_PRI3_R&0x00FFFFFF; // priority 0               
   NVIC_ST_CTRL_R = 0x00000007;                  // enable with core clock and interrupts
+	
+	_interruptsToBeReached = 9997;                // The nearest value when aiming for 10 seconds on the output total time
+	
+	Debug_Init();
 }
-																		
+
+void updateInterruptsToBeReached(double desiredTime) {
+	double doubleLoops = desiredTime/( (double)(DATA_SIZE-1) * SYSTEM_TIME * (double)(DEFAULT_RELOAD+1) );
+	_interruptsToBeReached = (int)(doubleLoops + 0.5); //Round to the nearest aproach
+}
+
 // **************Control_Init*********************
 // Initialize Systick periodic interrupts
 // Also calls DAC_Init() to initialize DAC
@@ -72,73 +88,84 @@ void Control_Init(void){
 // Sinalize that the start button was clicked
 // Input: none
 // Output: none
-void Start_Clicked(void){
-	buttonClicked = START_CLICKED;
+void Start_Clicked(double desiredTime){
+	updateInterruptsToBeReached(desiredTime);
+	_buttonClicked = START_CLICKED;
 }
 
 // **************Stop_Clicked*********************
 // Sinalize that the stop button was clicked
 // Input: none
 // Output: none
-void Stop_Clicked(void){
-	buttonClicked = STOP_CLICKED;
+void Stop_Clicked(double desiredTime){
+	updateInterruptsToBeReached(desiredTime);
+	_buttonClicked = STOP_CLICKED;
 }
 
 // Interrupt service routine
 // Executed every 12.5ns*(period)
 void SysTick_Handler(void){
+	Debug_TooglePin3();
 	
-	switch(buttonClicked) {
+	// ------------------------------------------------------------------
+	// Check for button clicks notified by any caller.
+	// ------------------------------------------------------------------
+	switch(_buttonClicked) {
 		case START_CLICKED:
-			stopping=0;
-			starting=1;
-		  InterruptsCounter = 10; // force to immediately update
-			buttonClicked = NONE_CLICKED; // Clear the click
+			_stoppingFlag=0;
+			_startingFlag=1;
+		  _interruptsCounter = 10; // force to immediately update
+			_buttonClicked = NONE_CLICKED; // Clear the click
 			break;
 		case STOP_CLICKED:
-			starting=0;
-			stopping=1;
-			InterruptsCounter = 10; // force to immediately update
-			buttonClicked = NONE_CLICKED; // Clear the click
+			_startingFlag=0;
+			_stoppingFlag=1;
+			_interruptsCounter = 10; // force to immediately update
+			_buttonClicked = NONE_CLICKED; // Clear the click
 			break;
 		case NONE_CLICKED:
 			break;
 		default:
 			break;
 	}
+	// ------------------------------------------------------------------
 	
-	if(InterruptsCounter>=10) {
-		InterruptsCounter=0; //Reset the counter
+	// ------------------------------------------------------------------
+	// If the amount of interrupts was reachead, execute the core logic to DAC out.
+	// ------------------------------------------------------------------
+	if(_interruptsCounter>=_interruptsToBeReached) {
+		_interruptsCounter=0; //Reset the counter
 		
-		if(starting==1) {
+		if(_startingFlag==1) {
 			LEDs_Green();
-			if(Index>=43) { //Reached the end of starting
-				starting=0;
-				Index = 43; //Lock the index into 43 to hold the angle as 0
-				started = 1; //Indicate that the motor reached the nominal motor
+			if(_dataIndex>=43) { //Reached the end of starting
+				_startingFlag=0;
+				_dataIndex = 43; //Lock the index into 43 to hold the angle as 0
+				_startedFlag = 1; //Indicate that the motor reached the nominal motor
 			} else {
-				Index++;
+				_dataIndex++;
 			}
-		} else if(stopping==1) {
+		} else if(_stoppingFlag==1) {
 			LEDs_Red();
-			if(Index==0) { //Reached the end of stopping
-				stopping=0;
-				Index = 0; //Lock the index into 0 to hold the angle as 180
-				started = 0; //Indicate that the motor is no longer receiving voltage
+			if(_dataIndex==0) { //Reached the end of stopping
+				_stoppingFlag=0;
+				_dataIndex = 0; //Lock the index into 0 to hold the angle as 180
+				_startedFlag = 0; //Indicate that the motor is no longer receiving voltage
 			} else {
-				Index--;
+				_dataIndex--;
 			}
 		} else {
-			if(started==1) {
+			if(_startedFlag==1) {
 				LEDs_Blue();
 			} else {
 				LEDs_None();
 			}
 		}
 		
-		DAC_Out(output[Index]); //output one value each 10 interrupts
+		DAC_Out(output[_dataIndex]); //output one value each 10 interrupts
 	}
+	// ------------------------------------------------------------------
 	
-	InterruptsCounter++;
+	_interruptsCounter++;
 	
 }
