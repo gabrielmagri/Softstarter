@@ -50,7 +50,7 @@ const unsigned char output[DATA_SIZE] = {63, 42, 41, 40, 39, 38, 37, 36, 35, 34,
 
 unsigned short _dataIndex=0;                  // Index varies from 0 to 43.
 unsigned int   _interruptsCounter = 0;        // The counter that needs to reach some value to generate the DAC out.
-unsigned int   _interruptsToBeReached = 0;    // The variable that holds the current amount of interrupts to wait before output to DAC
+unsigned int   _interruptsToBeReached = 9997; // The variable that holds the current amount of interrupts to wait before output to DAC
 unsigned char  _buttonClicked = NONE_CLICKED; // The variable that holds the button events.
 unsigned char  _startingFlag = 0;             // A flag to indicate that the motor is on the middle of a start process.
 unsigned char  _stoppingFlag = 0;             // A flag to indicate that the motor is on the middle of a stop process.
@@ -58,13 +58,14 @@ unsigned char  _startedFlag = 0;              // A flag to indicate that the mot
 
 //
 void Systick_Init(void) {
+	
+	_interruptsToBeReached = 9997;                // The nearest value when aiming for 10 seconds on the output total time	
+	
 	NVIC_ST_CTRL_R = 0;                           // disable SysTick during setup
   NVIC_ST_RELOAD_R = DEFAULT_RELOAD;            // reload value
   NVIC_ST_CURRENT_R = 0;                        // any write to current clears it
   NVIC_SYS_PRI3_R = NVIC_SYS_PRI3_R&0x00FFFFFF; // priority 0               
   NVIC_ST_CTRL_R = 0x00000007;                  // enable with core clock and interrupts
-	
-	_interruptsToBeReached = 9997;                // The nearest value when aiming for 10 seconds on the output total time
 	
 	Debug_Init();
 }
@@ -105,7 +106,7 @@ void Stop_Clicked(double desiredTime){
 // Interrupt service routine
 // Executed every 12.5ns*(period)
 void SysTick_Handler(void){
-	Debug_TooglePin3();
+	//Debug_TooglePin3();
 	
 	// ------------------------------------------------------------------
 	// Check for button clicks notified by any caller.

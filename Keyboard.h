@@ -5,8 +5,14 @@
 // Gabriel Magri, Jaqueline Isabel Prass, Marcos Spellmeier
 // September 18, 2018
 
-#define KEY_START_PRESSED 0X01
-#define KEY_STOP_PRESSED  0X02
+#define KEY_OP_START_PRESSED 0X01
+#define KEY_OP_STOP_PRESSED  0X02
+#define KEY_OP_ENTER_CONFIG  0X04
+
+#define KEY_CFG_TIME_UP          0X01
+#define KEY_CFG_TIME_DOWN        0X02
+#define KEY_CFG_CONFIG_OK        0X04
+#define KEY_CFG_CHANGE_TIME_UNIT 0X08
 
 // **************Keyboard_Init*********************
 // Initialize keyboard key inputs
