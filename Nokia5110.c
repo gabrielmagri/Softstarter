@@ -264,6 +264,57 @@ void Nokia5110_OutUDec(unsigned short n){
   }
 }
 
+//********Nokia5110_OutUDec*****************
+// Output a specific for the softstarter double value.
+// The double must be between 0 and 99. The output will
+// be with a precision of 1mS. Like: 5.372 or 14.003
+// Inputs: d double value
+// Outputs: none
+void Nokia5110_OutDouble(double n){
+  int tempInt = 0;
+	if(n < 10){
+    Nokia5110_OutString(" ");
+		
+		tempInt = (int)n;
+		n = n - tempInt;
+    Nokia5110_OutChar(tempInt+'0'); /* n is between 0 and 9 */
+		Nokia5110_OutChar('.');
+		n=n*10.0;
+		tempInt = (int)n;
+		n = n - tempInt;
+		Nokia5110_OutChar(tempInt+'0'); /* n is between 0 and 9 */
+		n=n*10.0;
+		tempInt = (int)n;
+		n = n - tempInt;
+		Nokia5110_OutChar(tempInt+'0'); /* n is between 0 and 9 */
+		n=n*10.0;
+		tempInt = (int)n;
+		n = n - tempInt;
+		Nokia5110_OutChar(tempInt+'0'); /* n is between 0 and 9 */
+		
+  } else if(n < 100){
+		
+		tempInt = (int)n;
+		n = n - tempInt;
+		Nokia5110_OutChar(tempInt/10+'0'); /* tens digit */
+    Nokia5110_OutChar(tempInt%10+'0'); /* ones digit */
+		Nokia5110_OutChar('.');
+		n=n*10.0;
+		tempInt = (int)n;
+		n = n - tempInt;
+		Nokia5110_OutChar(tempInt+'0'); /* n is between 0 and 9 */
+		n=n*10.0;
+		tempInt = (int)n;
+		n = n - tempInt;
+		Nokia5110_OutChar(tempInt+'0'); /* n is between 0 and 9 */
+		n=n*10.0;
+		tempInt = (int)n;
+		n = n - tempInt;
+		Nokia5110_OutChar(tempInt+'0'); /* n is between 0 and 9 */
+		
+  } 
+}
+
 //********Nokia5110_SetCursor*****************
 // Move the cursor to the desired X- and Y-position.  The
 // next character will be printed here.  X=0 is the leftmost
