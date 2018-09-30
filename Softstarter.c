@@ -28,7 +28,6 @@
 #include "control.h"
 #include "Keyboard.h"
 #include "Nokia5110.h"
-#include "Debug.h"
 
 /* A Unisinos bitmap image to be displayed on startup */
 const unsigned char _logoUni[] ={
@@ -110,6 +109,8 @@ const unsigned char _logoUni[] ={
 void DisableInterrupts(void); // Disable interrupts
 void EnableInterrupts(void);  // Enable interrupts
 
+// The main state machine, its possible values and its functions
+// ------------------------------------------------------------------
 #define SM_INITIALIZING 0
 #define SM_OPERATIONAL  1
 #define SM_CONFIGURING  2
@@ -120,46 +121,86 @@ void initializeRoutine(void);
 void operationalRoutine(void);
 void configRoutine(void);
 void displayLogoRoutine(void);
-void checkBounds(void);
+// ------------------------------------------------------------------
 
+// The main state machine, its possible values and its functions
+// ------------------------------------------------------------------
+void displayOperationalInfo(void);
+void displayConfigInfo(void);
+void displayUnisinosLogo(void);
+void displayUpdatedMotorState(void);
+void displayUpdatedTimeUnit(void);
+void displayUpdatedTimes(void);
+// ------------------------------------------------------------------
+
+// The defined bounds for the min and max ramp times and a function
+// that checks for the bounds and update the values if necessary
+// ------------------------------------------------------------------
+void checkBounds(void);
 const double UPPER_BOUND = 15;
 const double LOWER_BOUND = 5;
+// ------------------------------------------------------------------
+
+// The current configured times for the ramp
+// ------------------------------------------------------------------
 double _desiredUpTime   = 5.0;
 double _desiredDownTime = 5.0;
+// ------------------------------------------------------------------
 
+// The current selected time unit to change the ramp times
+// ------------------------------------------------------------------
 #define TIME_UNIT_MILLESECONDS  0
 #define TIME_UNIT_SECONDS       1
 char _currentTimeUnit = 0;
+// ------------------------------------------------------------------
 
+// The current selected to be updated time
+// ------------------------------------------------------------------
+#define UP_TIME   0
+#define DOWN_TIME 1
+char _currentUpdatingTime = 0;
+// ------------------------------------------------------------------
+
+// The last motor status remembered
 char _lastMotorStatus = SM_STOPPED;
 
-int count = 0;
+// index to the delays executed with for loops
 int i = 0;
 
 int main(void){
 	
+	
+	// Initialize all the necessary libraries
+	// ------------------------------------------------------------------
 	PLL_Init();
 	LEDs_Init();
 	Keyboard_Init();
 	Control_Init();
 	Nokia5110_Init();
+	// ------------------------------------------------------------------
 	
-	Debug_Init(); //TODO remove this in final version
-	
-	Nokia5110_Clear();
-	Nokia5110_PrintBMP(0, 47, _logoUni, 0);
-	Nokia5110_DisplayBuffer();
+	// Show the Unisinos logo on screen and wait sometime.
+	// ------------------------------------------------------------------
+	displayUnisinosLogo();
 	for(i = 0; i<9000000; i++){}
+	// ------------------------------------------------------------------
+		
+  EnableInterrupts(); // Enable interrupts that are used within control.c
 	
-  EnableInterrupts();
-	
+	// Inifite loop to the main functions
+	// ------------------------------------------------------------------
   for(;;) {
 		executeStateMachine();
   }
+	// ------------------------------------------------------------------
 }
 
-//
-void executeStateMachine() {
+// **************executeStateMachine*********************
+// Execute the main state machine that repesent the state
+// of the system itself not just the motor state
+// Input: none
+// Output: none
+void executeStateMachine(void) {
 	switch(_state) {
 		case SM_INITIALIZING:
 			initializeRoutine();
@@ -176,14 +217,165 @@ void executeStateMachine() {
 	}
 }
 
-//
+// **************initializeRoutine*********************
+// Execute the initialization routine that can be used
+// to display some necessary information and perhaps
+// sinalize (make an output) that the system has started
+// Input: none
+// Output: none
 void initializeRoutine(void) {
+	displayOperationalInfo(); // Display the operational info on the screen
+	_state = SM_OPERATIONAL;  // Just change to operational state
+}
+
+// **************operationalRoutine*********************
+// Execute the operational routine that is the main routine
+// This routine read the key events notifying the control.c
+// in events occurences. Also, this routine executes some
+// display updates.
+// Input: none
+// Output: none
+void operationalRoutine(void) {
+	char tempMotorStatus = Control_GetMotorState();
+	if(_lastMotorStatus != tempMotorStatus) {
+		_lastMotorStatus = tempMotorStatus;
+		displayUpdatedMotorState();
+	}
+	
+	switch(Keyboard_In()) {
+			case KEY_OP_START_PRESSED:
+				Start_Clicked(_desiredUpTime); // Notify control.c that there is a START event
+				break;
+			case KEY_OP_STOP_PRESSED:
+				Stop_Clicked(_desiredDownTime);  // Notify control.c that there is a STOP event
+				break;
+			case KEY_OP_ENTER_CONFIG:
+				displayConfigInfo(); // Display on screen all the configuration information
+				_state = SM_CONFIGURING; // Change the state to configuration state
+				break;
+			case KEY_OP_DISPLAY_LOGO:
+				_state = SM_DISPLAY_LOGO; // Change the state to the state taht shows the Unisinos logo
+				break;
+			default:
+				
+				break;
+		}
+}
+
+// ******************configRoutine*************************
+// Execute the configuration routine that is the routine
+// responsible for allowing the user to change the up and
+// down times for the motor's acceleration.
+// Also, this routine execute some display updates.
+// Input: none
+// Output: none
+void configRoutine(void){
+	
+	switch(Keyboard_In()) {
+		case KEY_CFG_CHANGE_TIME_UNIT:
+			// toogle the current time unit between S and mS
+			_currentTimeUnit = !_currentTimeUnit;
+			// Call the routine to update this to the screen
+			displayUpdatedTimeUnit();
+			break;
+		case KEY_CFG_CONFIG_OK:
+			// If is the first click on it it's just a change of
+		  // wich timer is being update. On the second click it
+		  // exits the config state and goes to operational again
+			if(_currentUpdatingTime == UP_TIME) {
+				_currentUpdatingTime = DOWN_TIME;
+				displayConfigInfo();
+			} else {
+				// Update back to up time because this is the default
+				_currentUpdatingTime = UP_TIME;
+				// update the screen with operational information
+				displayOperationalInfo();
+				// change the state to the operational one
+				_state = SM_OPERATIONAL;
+			}
+			break;
+		default:
+			break;
+	}
+	
+	// Execute the continuos read from the keyboard. This feature
+	// allows the user to hold the button and the increase/decrease
+	// will be executed each time faster while holding pressed the
+	// same button
+	switch(Keyboard_Continuous_In()) {
+			case KEY_CFG_TIME_UP:
+				
+				if(_currentUpdatingTime == UP_TIME) {
+					if(_currentTimeUnit == TIME_UNIT_MILLESECONDS) {
+						_desiredUpTime = _desiredUpTime+0.001;
+					} else if(_currentTimeUnit == TIME_UNIT_SECONDS) {
+						_desiredUpTime++;
+					}
+				}
+				else if(_currentUpdatingTime == DOWN_TIME) {
+					if(_currentTimeUnit == TIME_UNIT_MILLESECONDS) {
+						_desiredDownTime = _desiredDownTime+0.001;
+					} else if(_currentTimeUnit == TIME_UNIT_SECONDS) {
+						_desiredDownTime++;
+					}
+				}
+				displayUpdatedTimes();
+				break;
+				
+			case KEY_CFG_TIME_DOWN:
+				
+				if(_currentUpdatingTime == UP_TIME) {
+					if(_currentTimeUnit == TIME_UNIT_MILLESECONDS) {
+						_desiredUpTime = _desiredUpTime-0.001;
+					} else if(_currentTimeUnit == TIME_UNIT_SECONDS) {
+						_desiredUpTime--;
+					}
+				}
+				else if(_currentUpdatingTime == DOWN_TIME) {
+					if(_currentTimeUnit == TIME_UNIT_MILLESECONDS) {
+						_desiredDownTime = _desiredDownTime-0.001;
+					} else if(_currentTimeUnit == TIME_UNIT_SECONDS) {
+						_desiredDownTime--;
+					}
+				}	
+				displayUpdatedTimes(); //Update the screen after changing the value
+				break;
+				
+			default:
+				break;
+		}
+}
+
+// ******************displayLogoRoutine*************************
+// Execute the routine that is responsible for displaying the
+// UNISINOS logo for a few seconds and then go back to operational
+// Input: none
+// Output: none
+void displayLogoRoutine(void) {
+	displayUnisinosLogo();
+	for(i = 0; i<5000000; i++){}
+	_state = SM_INITIALIZING;
+}
+
+
+
+//----------------------------------------------------------------------------------------------------------------------------
+//----------------------------------------------------------------------------------------------------------------------------
+//------------      BELLOW ARE DISPLAY USEFULL UPDATE FUNCTIONS TO THE NOKIA WITH THIS SOFTSTARTER FILE           ------------
+//----------------------------------------------------------------------------------------------------------------------------
+//----------------------------------------------------------------------------------------------------------------------------
+
+// ******************displayOperationalInfo*************************
+// This function update the whole display screen with the operational
+// information, like motor status and configured timers.
+// Input: none
+// Output: none
+void displayOperationalInfo(void) {
 	Nokia5110_Clear();
 	Nokia5110_OutString("Operational ");
 	Nokia5110_OutString("------------");
-	Nokia5110_OutString("Motor status");
 
-	switch(Control_GetMotorState()) {
+	switch(_lastMotorStatus) {
 		case SM_STARTED:
 			Nokia5110_OutString("  STARTED   ");
 			break;
@@ -201,148 +393,115 @@ void initializeRoutine(void) {
 	}
 
 	Nokia5110_OutString("------------");
-	Nokia5110_OutString("Time: ");
+	Nokia5110_OutString("UP:   ");
 	Nokia5110_OutDouble(_desiredUpTime);
-	_state = SM_OPERATIONAL; //Just change to operational state
+	Nokia5110_OutString("DOWN: ");
+	Nokia5110_OutDouble(_desiredDownTime);
 }
 
-//
-void operationalRoutine(void) {
-	char tempMotorStatus = Control_GetMotorState();
-	if(_lastMotorStatus != tempMotorStatus) {
-		_lastMotorStatus = tempMotorStatus;
-		Debug_TooglePin2(); // Sinalize that we tried to update display
-		Nokia5110_SetCursor(0, 3);
-		switch(Control_GetMotorState()) {
-			case SM_STARTED:
-				Nokia5110_OutString("  STARTED   ");
-				break;
-			case SM_STOPPED:
-				Nokia5110_OutString("  STOPPED   ");
-				break;
-			case SM_STARTING:
-				Nokia5110_OutString("  STARTING  ");
-				break;
-			case SM_STOPPING:
-				Nokia5110_OutString("  STOPPING  ");
-				break;
-			default:
-				break;
-		}
+// ******************displayConfigInfo*************************
+// This function update the whole display screen with the configuration
+// information, configured timers, current selected time unit, current
+// selected timer to be updated.
+// Input: none
+// Output: none
+void displayConfigInfo(void) {
+	Nokia5110_Clear();
+	Nokia5110_OutString("Config MENU:");
+	Nokia5110_OutString("------------");
+	Nokia5110_OutString("Time Unit:");
+	if(_currentTimeUnit) Nokia5110_OutString(" S");
+	if(!_currentTimeUnit) Nokia5110_OutString("mS");
+	Nokia5110_OutString("            ");
+	if(_currentUpdatingTime == UP_TIME) {
+		Nokia5110_OutString("*UP:  ");
+		Nokia5110_OutDouble(_desiredUpTime);
+		Nokia5110_OutString("DOWN: ");
+		Nokia5110_OutDouble(_desiredDownTime);
+	} else {
+		Nokia5110_OutString("UP:   ");
+		Nokia5110_OutDouble(_desiredUpTime);
+		Nokia5110_OutString("*DOWN:");
+		Nokia5110_OutDouble(_desiredDownTime);
 	}
 	
-	switch(Keyboard_In()) {
-			case KEY_OP_START_PRESSED:
-				Start_Clicked(_desiredUpTime);
-				break;
-			case KEY_OP_STOP_PRESSED:
-				Stop_Clicked(_desiredUpTime);
-				break;
-			case KEY_OP_ENTER_CONFIG:
-				Nokia5110_Clear();
-				Nokia5110_OutString("Config MENU:");
-				Nokia5110_OutString("------------");
-				Nokia5110_OutString("Time Unit:");
-				if(_currentTimeUnit) Nokia5110_OutString(" S");
-				if(!_currentTimeUnit) Nokia5110_OutString("mS");
-				Nokia5110_OutString("            ");
-				Nokia5110_OutString("Time: ");
-				Nokia5110_OutDouble(_desiredUpTime);
-				_state = SM_CONFIGURING;
-				break;
-			case KEY_OP_DISPLAY_LOGO:
-				_state = SM_DISPLAY_LOGO;
-				break;
-			default:
-				
-				break;
-		}
 }
 
-//
-void configRoutine(void){
-	
-	switch(Keyboard_In()) {
-		case KEY_CFG_CHANGE_TIME_UNIT:
-			_currentTimeUnit = !_currentTimeUnit;
-			Nokia5110_SetCursor(10, 2);
-			if(_currentTimeUnit) Nokia5110_OutString(" S");
-			if(!_currentTimeUnit) Nokia5110_OutString("mS");
+// ******************displayUpdatedMotorState*************************
+// This function provides a way to update a specific display position, 
+// more precisely, the motor state position. It's update with the new state
+// Input: none
+// Output: none
+void displayUpdatedMotorState(void) {
+	Nokia5110_SetCursor(0, 2);
+	switch(_lastMotorStatus) {
+		case SM_STARTED:
+			Nokia5110_OutString("  STARTED   ");
 			break;
-		case KEY_CFG_CONFIG_OK:
-			Nokia5110_Clear();
-			Nokia5110_OutString("Operational ");
-			Nokia5110_OutString("------------");
-			Nokia5110_OutString("Motor status");
-		
-			switch(Control_GetMotorState()) {
-				case SM_STARTED:
-					Nokia5110_OutString("  STARTED   ");
-					break;
-				case SM_STOPPED:
-					Nokia5110_OutString("  STOPPED   ");
-					break;
-				case SM_STARTING:
-					Nokia5110_OutString("  STARTING  ");
-					break;
-				case SM_STOPPING:
-					Nokia5110_OutString("  STOPPING  ");
-					break;
-				default:
-					break;
-			}
-		
-			Nokia5110_OutString("------------");
-			Nokia5110_OutString("Time: ");
-			Nokia5110_OutDouble(_desiredUpTime);
-			
-			_state = SM_OPERATIONAL;
+		case SM_STOPPED:
+			Nokia5110_OutString("  STOPPED   ");
+			break;
+		case SM_STARTING:
+			Nokia5110_OutString("  STARTING  ");
+			break;
+		case SM_STOPPING:
+			Nokia5110_OutString("  STOPPING  ");
 			break;
 		default:
 			break;
 	}
-	
-	switch(Keyboard_Continuous_In()) {
-			case KEY_CFG_TIME_UP:
-				if(_currentTimeUnit == TIME_UNIT_MILLESECONDS) {
-					_desiredUpTime = _desiredUpTime+0.001;
-				} else if(_currentTimeUnit == TIME_UNIT_SECONDS) {
-					_desiredUpTime++;
-				}
-				
-				checkBounds();
-				Nokia5110_SetCursor(6, 4);
-				Nokia5110_OutDouble(_desiredUpTime);
-				break;
-			case KEY_CFG_TIME_DOWN:
-				if(_currentTimeUnit == TIME_UNIT_MILLESECONDS) {
-					_desiredUpTime = _desiredUpTime-0.001;
-				} else if(_currentTimeUnit == TIME_UNIT_SECONDS) {
-					_desiredUpTime--;
-				}
-				
-				checkBounds();
-				Nokia5110_SetCursor(6, 4);
-				Nokia5110_OutDouble(_desiredUpTime);
-				break;
-			default:
-				break;
-		}
 }
 
-void displayLogoRoutine(void) {
+// **************displayUpdatedTimeUnit*********************
+// This function updates on the screen just the current 
+// selected time unit to be used within time up and down
+// Input: none
+// Output: none
+void displayUpdatedTimeUnit(void) {
+	Nokia5110_SetCursor(10, 2);
+	if(_currentTimeUnit) Nokia5110_OutString(" S");
+	if(!_currentTimeUnit) Nokia5110_OutString("mS");
+}
+
+// **************displayUpdatedTimes*********************
+// This function updates on the screen just the current 
+// timers. Can be called after their changes
+// Input: none
+// Output: none
+void displayUpdatedTimes(void) {
+	checkBounds();
+	Nokia5110_SetCursor(6, 4);
+	Nokia5110_OutDouble(_desiredUpTime);
+	Nokia5110_SetCursor(6, 5);
+	Nokia5110_OutDouble(_desiredDownTime);
+}
+
+// **************displayUnisinosLogo*********************
+// This function clears the whole screen and update it
+// with a full 84x48 bmp UNISINOS logo image
+// Input: none
+// Output: none
+void displayUnisinosLogo(void) {
 	Nokia5110_Clear();
 	Nokia5110_PrintBMP(0, 47, _logoUni, 0);
 	Nokia5110_DisplayBuffer();
-	for(i = 0; i<5000000; i++){}
-	_state = SM_INITIALIZING;
 }
 
-//TODO improve to circular incremental loop
+// **************checkBounds*********************
+// This functions checks and update the current
+// timers values, according to their relations
+// with the specified bounds for them.
+// Input: none
+// Output: none
 void checkBounds(void) {
 	if(_desiredUpTime > UPPER_BOUND) {
 		_desiredUpTime = UPPER_BOUND;
 	} else if(_desiredUpTime < LOWER_BOUND) {
 		_desiredUpTime = LOWER_BOUND;
+	}
+	if(_desiredDownTime > UPPER_BOUND) {
+		_desiredDownTime = UPPER_BOUND;
+	} else if(_desiredDownTime < LOWER_BOUND) {
+		_desiredDownTime = LOWER_BOUND;
 	}
 }
