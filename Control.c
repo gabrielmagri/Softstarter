@@ -43,7 +43,6 @@
 #include "LEDs.h"
 #include "tm4c123gh6pm.h"
 #include "Nokia5110.h"
-//#include "Debug.h"
 
 //
 const unsigned char output[DATA_SIZE] = {63, 42, 41, 40, 39, 38, 37, 36, 35, 34, 33, 32, 31, 30, 29, 28, 27, 26, 
@@ -117,7 +116,6 @@ void Stop_Clicked(double desiredTime){
 // Interrupt service routine
 // Executed every 12.5ns*(period)
 void SysTick_Handler(void){
-	//Debug_TooglePin3();
 	
 	// ------------------------------------------------------------------
 	// Check for button clicks notified by any caller.
