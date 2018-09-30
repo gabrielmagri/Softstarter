@@ -10,12 +10,10 @@
 #include "Keyboard.h"
 #include "tm4c123gh6pm.h"
 
-st_velocity velocity6 = { 1,   0,  0 };
-st_velocity velocity5 = { 2,   50, 0, &velocity6 };
-st_velocity velocity4 = { 5,   50, 0, &velocity5 };
-st_velocity velocity3 = { 20,  10, 0, &velocity4 };
-st_velocity velocity2 = { 60,  5,  0, &velocity3 };
-st_velocity velocity1 = { 150, 1,  0, &velocity2 };
+st_velocity velocity4 = { 0,   0,  0 };
+st_velocity velocity3 = { 2,   30, 0, &velocity4 };
+st_velocity velocity2 = { 10,  10, 0, &velocity3 };
+st_velocity velocity1 = { 30,  1,  0, &velocity2 };
 st_velocity velocity0 = { 0,   1,  0, &velocity1 };
 st_velocity _currentVelocity;
 

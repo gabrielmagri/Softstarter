@@ -28,6 +28,7 @@
 #include "control.h"
 #include "Keyboard.h"
 #include "Nokia5110.h"
+#include "Debug.h"
 
 /* A Unisinos bitmap image to be displayed on startup */
 const unsigned char _logoUni[] ={
@@ -123,7 +124,8 @@ void checkBounds(void);
 
 const double UPPER_BOUND = 15;
 const double LOWER_BOUND = 5;
-double _desiredTime = 5.0;
+double _desiredUpTime   = 5.0;
+double _desiredDownTime = 5.0;
 
 #define TIME_UNIT_MILLESECONDS  0
 #define TIME_UNIT_SECONDS       1
@@ -141,6 +143,8 @@ int main(void){
 	Keyboard_Init();
 	Control_Init();
 	Nokia5110_Init();
+	
+	Debug_Init(); //TODO remove this in final version
 	
 	Nokia5110_Clear();
 	Nokia5110_PrintBMP(0, 47, _logoUni, 0);
@@ -198,14 +202,16 @@ void initializeRoutine(void) {
 
 	Nokia5110_OutString("------------");
 	Nokia5110_OutString("Time: ");
-	Nokia5110_OutDouble(_desiredTime);
+	Nokia5110_OutDouble(_desiredUpTime);
 	_state = SM_OPERATIONAL; //Just change to operational state
 }
 
 //
 void operationalRoutine(void) {
-	
-	if(_lastMotorStatus != Control_GetMotorState()) {
+	char tempMotorStatus = Control_GetMotorState();
+	if(_lastMotorStatus != tempMotorStatus) {
+		_lastMotorStatus = tempMotorStatus;
+		Debug_TooglePin2(); // Sinalize that we tried to update display
 		Nokia5110_SetCursor(0, 3);
 		switch(Control_GetMotorState()) {
 			case SM_STARTED:
@@ -227,10 +233,10 @@ void operationalRoutine(void) {
 	
 	switch(Keyboard_In()) {
 			case KEY_OP_START_PRESSED:
-				Start_Clicked(_desiredTime);
+				Start_Clicked(_desiredUpTime);
 				break;
 			case KEY_OP_STOP_PRESSED:
-				Stop_Clicked(_desiredTime);
+				Stop_Clicked(_desiredUpTime);
 				break;
 			case KEY_OP_ENTER_CONFIG:
 				Nokia5110_Clear();
@@ -241,7 +247,7 @@ void operationalRoutine(void) {
 				if(!_currentTimeUnit) Nokia5110_OutString("mS");
 				Nokia5110_OutString("            ");
 				Nokia5110_OutString("Time: ");
-				Nokia5110_OutDouble(_desiredTime);
+				Nokia5110_OutDouble(_desiredUpTime);
 				_state = SM_CONFIGURING;
 				break;
 			case KEY_OP_DISPLAY_LOGO:
@@ -288,7 +294,7 @@ void configRoutine(void){
 		
 			Nokia5110_OutString("------------");
 			Nokia5110_OutString("Time: ");
-			Nokia5110_OutDouble(_desiredTime);
+			Nokia5110_OutDouble(_desiredUpTime);
 			
 			_state = SM_OPERATIONAL;
 			break;
@@ -299,25 +305,25 @@ void configRoutine(void){
 	switch(Keyboard_Continuous_In()) {
 			case KEY_CFG_TIME_UP:
 				if(_currentTimeUnit == TIME_UNIT_MILLESECONDS) {
-					_desiredTime = _desiredTime+0.001;
+					_desiredUpTime = _desiredUpTime+0.001;
 				} else if(_currentTimeUnit == TIME_UNIT_SECONDS) {
-					_desiredTime++;
+					_desiredUpTime++;
 				}
 				
 				checkBounds();
 				Nokia5110_SetCursor(6, 4);
-				Nokia5110_OutDouble(_desiredTime);
+				Nokia5110_OutDouble(_desiredUpTime);
 				break;
 			case KEY_CFG_TIME_DOWN:
 				if(_currentTimeUnit == TIME_UNIT_MILLESECONDS) {
-					_desiredTime = _desiredTime-0.001;
+					_desiredUpTime = _desiredUpTime-0.001;
 				} else if(_currentTimeUnit == TIME_UNIT_SECONDS) {
-					_desiredTime--;
+					_desiredUpTime--;
 				}
 				
 				checkBounds();
 				Nokia5110_SetCursor(6, 4);
-				Nokia5110_OutDouble(_desiredTime);
+				Nokia5110_OutDouble(_desiredUpTime);
 				break;
 			default:
 				break;
@@ -334,9 +340,9 @@ void displayLogoRoutine(void) {
 
 //TODO improve to circular incremental loop
 void checkBounds(void) {
-	if(_desiredTime > UPPER_BOUND) {
-		_desiredTime = UPPER_BOUND;
-	} else if(_desiredTime < LOWER_BOUND) {
-		_desiredTime = LOWER_BOUND;
+	if(_desiredUpTime > UPPER_BOUND) {
+		_desiredUpTime = UPPER_BOUND;
+	} else if(_desiredUpTime < LOWER_BOUND) {
+		_desiredUpTime = LOWER_BOUND;
 	}
 }

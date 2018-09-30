@@ -8,7 +8,7 @@
 static const unsigned long DEBOUNCE_BOUND = (unsigned long)2000000;
 
 // The current debounce value when reading keys
-#define DEBOUNCE_VALUE 2000
+#define DEBOUNCE_VALUE 10000
 
 // The keys option that can be pressed while in operational state
 #define KEY_OP_START_PRESSED 0X01
