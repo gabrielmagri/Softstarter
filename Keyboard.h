@@ -8,12 +8,13 @@
 static const unsigned long DEBOUNCE_BOUND = (unsigned long)2000000;
 
 // The current debounce value when reading keys
-#define DEBOUNCE_VALUE 11000
+#define DEBOUNCE_VALUE 2000
 
 // The keys option that can be pressed while in operational state
 #define KEY_OP_START_PRESSED 0X01
 #define KEY_OP_STOP_PRESSED  0X02
 #define KEY_OP_ENTER_CONFIG  0X04
+#define KEY_OP_DISPLAY_LOGO  0X08
 
 // The keys option that can be pressed while in config state
 #define KEY_CFG_TIME_UP          0X01
