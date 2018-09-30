@@ -102,21 +102,10 @@ unsigned long Keyboard_Continuous_In(void) {
 	_currentStatus = (GPIO_PORTE_DATA_R & 0X0F);
 	
 	// if there is some key pressed and the value still the same increment the debounce counter.
-	// This statement make it only possible to acionate alternating the keys.
-	// That is, once started you can only stop, vice-versa.
-	//if( (_currentStatus != 0) && (_currentStatus == _lastCurrentPressingStatus) && (_outputed == 0) ) {
 	if( (_currentStatus != 0) && (_currentStatus == _lastCurrentPressingStatus) ) {
 		if(_debounceCounter < DEBOUNCE_BOUND) { //Protection against overflow
 			_debounceCounter++;
 		}
-	
-	// If the key stay pressed we start to output between a variable time interval
-	// This make the user experience better when trying to change the milleseconds
-	// Once you can keep the key pressed to change the milleseconds faster
-//	} else if( (_currentStatus == _lastCurrentPressingStatus) && (_outputed == 1) ) {
-//		if(_debounceCounter < DEBOUNCE_BOUND) { //Protection against overflow
-//			_debounceCounter++;
-//		}
 		
 	// On the first key release after the click event was outputed we allow to ouput something again
 	} else if( (_currentStatus != _lastCurrentPressingStatus) && (_outputed == 1) ) {

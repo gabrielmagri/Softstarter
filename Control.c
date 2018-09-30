@@ -53,10 +53,6 @@ unsigned short _dataIndex = 0;                // Index varies from 0 to 43.
 unsigned int   _interruptsCounter = 0;        // The counter that needs to reach some value to generate the DAC out.
 unsigned int   _interruptsToBeReached = 9997; // The variable that holds the current amount of interrupts to wait before output to DAC
 unsigned char  _buttonClicked = NONE_CLICKED; // The variable that holds the button events.
-//unsigned char  _startingFlag = NOT_FLAGGED;   // A flag to indicate that the motor is on the middle of a start process.
-//unsigned char  _stoppingFlag = NOT_FLAGGED;   // A flag to indicate that the motor is on the middle of a stop process.
-//unsigned char  _startedFlag = NOT_FLAGGED;    // A flag to indicate that the motor has finished the start process.
-
 
 unsigned short _motorState = SM_STOPPED; // The motor control state initiate as stopped.
 

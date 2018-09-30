@@ -159,9 +159,6 @@ void operationalRoutine(void) {
 
 //
 void configRoutine(void){
-	//First read to burn the first event that would be KEY_CFG_CONFIG_OK
-	// , because that's the key pressed to come from operational to config.
-	//Keyboard_Continuous_In();
 	
 	switch(Keyboard_In()) {
 		case KEY_CFG_CHANGE_TIME_UNIT:
