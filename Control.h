@@ -9,9 +9,19 @@
 #define START_CLICKED 1
 #define STOP_CLICKED  2
 
+#define NOT_FLAGGED 0
+#define FLAGGED     1
+
+#define SM_STARTED  0
+#define SM_STARTING 1
+#define SM_STOPPING 2
+#define SM_STOPPED  3
+
 static const double SYSTEM_TIME = 0.0000000125; // The system time when running at 80MHz
 static const int DEFAULT_RELOAD = 1860;         // Reload value as defined on the comments above (file's top) 
 static const short DATA_SIZE    = 44;           // The amount of data that are defined and can be "outputed" through DAC.
+
+short Control_GetMotorState(void);
 
 // **************Control_Init*********************
 // Initialize Systick periodic interrupts

@@ -42,20 +42,28 @@
 #include "DAC.h"
 #include "LEDs.h"
 #include "tm4c123gh6pm.h"
-#include "Debug.h"
+#include "Nokia5110.h"
+//#include "Debug.h"
 
 //
 const unsigned char output[DATA_SIZE] = {63, 42, 41, 40, 39, 38, 37, 36, 35, 34, 33, 32, 31, 30, 29, 28, 27, 26, 
 	25, 24, 23, 22, 21, 20, 19, 18, 17, 16 ,15 ,14, 13, 12, 11, 10, 9, 8, 7, 6, 5, 4, 3, 2, 1, 0};
 
-unsigned short _dataIndex=0;                  // Index varies from 0 to 43.
+unsigned short _dataIndex = 0;                // Index varies from 0 to 43.
 unsigned int   _interruptsCounter = 0;        // The counter that needs to reach some value to generate the DAC out.
 unsigned int   _interruptsToBeReached = 9997; // The variable that holds the current amount of interrupts to wait before output to DAC
 unsigned char  _buttonClicked = NONE_CLICKED; // The variable that holds the button events.
-unsigned char  _startingFlag = 0;             // A flag to indicate that the motor is on the middle of a start process.
-unsigned char  _stoppingFlag = 0;             // A flag to indicate that the motor is on the middle of a stop process.
-unsigned char  _startedFlag = 0;              // A flag to indicate that the motor has finished the start process.
+//unsigned char  _startingFlag = NOT_FLAGGED;   // A flag to indicate that the motor is on the middle of a start process.
+//unsigned char  _stoppingFlag = NOT_FLAGGED;   // A flag to indicate that the motor is on the middle of a stop process.
+//unsigned char  _startedFlag = NOT_FLAGGED;    // A flag to indicate that the motor has finished the start process.
 
+
+unsigned short _motorState = SM_STOPPED; // The motor control state initiate as stopped.
+
+short Control_GetMotorState(void) {
+	return _motorState;
+}
+	
 //
 void Systick_Init(void) {
 	
@@ -66,8 +74,7 @@ void Systick_Init(void) {
   NVIC_ST_CURRENT_R = 0;                        // any write to current clears it
   NVIC_SYS_PRI3_R = NVIC_SYS_PRI3_R&0x00FFFFFF; // priority 0               
   NVIC_ST_CTRL_R = 0x00000007;                  // enable with core clock and interrupts
-	
-	Debug_Init();
+
 }
 
 void updateInterruptsToBeReached(double desiredTime) {
@@ -87,20 +94,28 @@ void Control_Init(void){
 
 // **************Start_Clicked*********************
 // Sinalize that the start button was clicked
-// Input: none
+// Input: A double representing the desired total time to
+//        the motor speeding up action. Precision 1mS.
 // Output: none
 void Start_Clicked(double desiredTime){
-	updateInterruptsToBeReached(desiredTime);
-	_buttonClicked = START_CLICKED;
+	// Only allow to start if the motor is currently stopping or stopped
+	if( (_motorState == SM_STOPPED) || (_motorState == SM_STOPPING) ) {
+		updateInterruptsToBeReached(desiredTime);
+	  _buttonClicked = START_CLICKED;
+	}
 }
 
 // **************Stop_Clicked*********************
 // Sinalize that the stop button was clicked
-// Input: none
+// Input: A double representing the desired total time to
+//        the motor slow down action. Precision 1mS.
 // Output: none
 void Stop_Clicked(double desiredTime){
-	updateInterruptsToBeReached(desiredTime);
-	_buttonClicked = STOP_CLICKED;
+	// Only allow to stop if the motor is currently starting or started
+	if( (_motorState == SM_STARTED) || (_motorState == SM_STARTING) ) {
+		updateInterruptsToBeReached(desiredTime);
+		_buttonClicked = STOP_CLICKED;
+	}
 }
 
 // Interrupt service routine
@@ -113,15 +128,13 @@ void SysTick_Handler(void){
 	// ------------------------------------------------------------------
 	switch(_buttonClicked) {
 		case START_CLICKED:
-			_stoppingFlag=0;
-			_startingFlag=1;
-		  _interruptsCounter = 10; // force to immediately update
+			_motorState = SM_STARTING;
+		  _interruptsCounter = _interruptsToBeReached; // force to immediately update
 			_buttonClicked = NONE_CLICKED; // Clear the click
 			break;
 		case STOP_CLICKED:
-			_startingFlag=0;
-			_stoppingFlag=1;
-			_interruptsCounter = 10; // force to immediately update
+			_motorState = SM_STOPPING;
+			_interruptsCounter = _interruptsToBeReached; // force to immediately update
 			_buttonClicked = NONE_CLICKED; // Clear the click
 			break;
 		case NONE_CLICKED:
@@ -137,33 +150,31 @@ void SysTick_Handler(void){
 	if(_interruptsCounter>=_interruptsToBeReached) {
 		_interruptsCounter=0; //Reset the counter
 		
-		if(_startingFlag==1) {
+		if( _motorState == SM_STARTING ) {
 			LEDs_Green();
 			if(_dataIndex>=43) { //Reached the end of starting
-				_startingFlag=0;
 				_dataIndex = 43; //Lock the index into 43 to hold the angle as 0
-				_startedFlag = 1; //Indicate that the motor reached the nominal motor
+				_motorState = SM_STARTED; //Indicate that the motor reached the nominal motor P
 			} else {
 				_dataIndex++;
 			}
-		} else if(_stoppingFlag==1) {
+		} else if( _motorState == SM_STOPPING ) {
 			LEDs_Red();
 			if(_dataIndex==0) { //Reached the end of stopping
-				_stoppingFlag=0;
 				_dataIndex = 0; //Lock the index into 0 to hold the angle as 180
-				_startedFlag = 0; //Indicate that the motor is no longer receiving voltage
+				_motorState = SM_STOPPED; //Indicate that the motor is now completely stopped
 			} else {
 				_dataIndex--;
 			}
 		} else {
-			if(_startedFlag==1) {
+			if( _motorState == SM_STARTED ) {
 				LEDs_Blue();
 			} else {
 				LEDs_None();
 			}
 		}
 		
-		DAC_Out(output[_dataIndex]); //output one value each 10 interrupts
+		DAC_Out(output[_dataIndex]); //output one value each "_interruptsToBeReached" interrupts
 	}
 	// ------------------------------------------------------------------
 	

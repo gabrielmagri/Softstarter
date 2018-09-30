@@ -5,14 +5,30 @@
 // Gabriel Magri, Jaqueline Isabel Prass, Marcos Spellmeier
 // September 18, 2018
 
+static const unsigned long DEBOUNCE_BOUND = (unsigned long)2000000;
+
+// The current debounce value when reading keys
+#define DEBOUNCE_VALUE 11000
+
+// The keys option that can be pressed while in operational state
 #define KEY_OP_START_PRESSED 0X01
 #define KEY_OP_STOP_PRESSED  0X02
 #define KEY_OP_ENTER_CONFIG  0X04
 
+// The keys option that can be pressed while in config state
 #define KEY_CFG_TIME_UP          0X01
 #define KEY_CFG_TIME_DOWN        0X02
 #define KEY_CFG_CONFIG_OK        0X04
 #define KEY_CFG_CHANGE_TIME_UNIT 0X08
+
+// A struct that represents a volicity instance when using continuos keyboard input
+struct velocity {
+	unsigned long timeToWait;
+	unsigned short timesToExecute;
+	unsigned short amountOfExecution;
+	struct velocity *next;
+};
+typedef struct velocity st_velocity;
 
 // **************Keyboard_Init*********************
 // Initialize keyboard key inputs
@@ -21,8 +37,18 @@
 void Keyboard_Init(void);
 
 // **************Keyboard_In*********************
-// Input from keyboard key inputs
+// Input from keyboard's key inputs
+// This function output just one event per key pressed
+//  being necessary to release a key in order to press it again
 // Input: none 
-// Output: 0 to 3 depending on keys
-// 0x01 is the start key pressed, 0x02 is the stop key pressed
+// Output: 0 to 15 depending on keys combination
 unsigned long Keyboard_In(void);
+
+// **************Keyboard_Continuous_In*********************
+// Input from keyboard's key inputs
+// This function output key pressed events in a progressive
+//  way, where you can hold the button and the key event will
+//  start to happen each time faster.
+// Input: none 
+// Output: 0 to 15 depending on keys combination
+unsigned long Keyboard_Continuous_In(void);
