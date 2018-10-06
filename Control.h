@@ -21,6 +21,10 @@ static const double SYSTEM_TIME = 0.0000000125; // The system time when running 
 static const int DEFAULT_RELOAD = 1860;         // Reload value as defined on the comments above (file's top) 
 static const short DATA_SIZE    = 44;           // The amount of data that are defined and can be "outputed" through DAC.
 
+// ************Control_GetMotorState*******************
+// Returns the current motor state
+// Input: none
+// Output: short - the motor state
 short Control_GetMotorState(void);
 
 // **************Control_Init*********************

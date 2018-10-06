@@ -15,7 +15,7 @@
  *
  * It's role is to control the voltage level applied to the pin 11 of a
  * TCA785, aiming to control the acceleration and deceleration of a motor
- * when starting or stopping.
+ * when starting or stopping it.
  * Also, this software provides functions to configure the time to aceleration's ramps,
  *  visualize motor status through nokia 5110 display and LEDs.
  * 
@@ -29,7 +29,7 @@
 #include "Keyboard.h"
 #include "Nokia5110.h"
 
-/* A Unisinos bitmap image to be displayed on startup */
+/* A Unisinos 84x48 single color bitmap image to be displayed on startup */
 const unsigned char _logoUni[] ={
  0x42, 0x4D, 0xB6, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x76, 0x00, 0x00, 0x00, 0x28, 0x00, 0x00, 0x00, 0x54, 0x00, 0x00, 0x00, 0x30, 0x00, 0x00, 0x00, 0x01, 0x00, 0x04, 0x00, 0x00, 0x00,
  0x00, 0x00, 0x40, 0x08, 0x00, 0x00, 0xC3, 0x0E, 0x00, 0x00, 0xC3, 0x0E, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x80, 0x00, 0x00, 0x80,
@@ -179,7 +179,7 @@ int main(void){
 	Nokia5110_Init();
 	// ------------------------------------------------------------------
 	
-	// Show the Unisinos logo on screen and wait sometime.
+	// Show the Unisinos logo on screen and wait some time.
 	// ------------------------------------------------------------------
 	displayUnisinosLogo();
 	for(i = 0; i<9000000; i++){}
